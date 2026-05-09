@@ -29,8 +29,13 @@ export default function App() {
       page: 1,
     });
 
-  // DRAG STATE
-  const [dragging, setDragging] = useState(false);
+  // DRAGGING STATE
+  const [dragging, setDragging] =
+    useState(false);
+
+  // SIGNATURE SIZE
+  const signatureWidth = 150;
+  const signatureHeight = 80;
 
   // PDF Upload
   const handlePdfUpload = async (e) => {
@@ -81,9 +86,26 @@ export default function App() {
     const rect =
       e.currentTarget.getBoundingClientRect();
 
-    const x = e.clientX - rect.left;
+    let x = e.clientX - rect.left;
 
-    const y = e.clientY - rect.top;
+    let y = e.clientY - rect.top;
+
+    // KEEP INSIDE PDF
+    x = Math.max(
+      0,
+      Math.min(
+        x,
+        rect.width - signatureWidth
+      )
+    );
+
+    y = Math.max(
+      0,
+      Math.min(
+        y,
+        rect.height - signatureHeight
+      )
+    );
 
     setSignatureData({
       x,
@@ -113,9 +135,27 @@ export default function App() {
     const rect =
       e.currentTarget.getBoundingClientRect();
 
-    const x = e.clientX - rect.left;
+    // MOUSE POSITION
+    let x = e.clientX - rect.left;
 
-    const y = e.clientY - rect.top;
+    let y = e.clientY - rect.top;
+
+    // KEEP INSIDE PDF
+    x = Math.max(
+      0,
+      Math.min(
+        x,
+        rect.width - signatureWidth
+      )
+    );
+
+    y = Math.max(
+      0,
+      Math.min(
+        y,
+        rect.height - signatureHeight
+      )
+    );
 
     setSignatureData((prev) => ({
       ...prev,
@@ -184,8 +224,11 @@ export default function App() {
       }
 
       // IMAGE SIZE
-      const imageWidth = 150 * scale;
-      const imageHeight = 80 * scale;
+      const imageWidth =
+        signatureWidth * scale;
+
+      const imageHeight =
+        signatureHeight * scale;
 
       // PDF COORDINATES
       const pdfX =
@@ -379,10 +422,8 @@ export default function App() {
                               "absolute",
                             left: `${signatureData.x}px`,
                             top: `${signatureData.y}px`,
-                            width:
-                              "150px",
-                            height:
-                              "80px",
+                            width: `${signatureWidth}px`,
+                            height: `${signatureHeight}px`,
                             border:
                               "2px dashed #2563eb",
                             background:
@@ -392,6 +433,8 @@ export default function App() {
                             zIndex: 999,
                             cursor:
                               "move",
+                            userSelect:
+                              "none",
                           }}
                         />
                       )}
