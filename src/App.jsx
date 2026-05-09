@@ -5,6 +5,8 @@ import {
   degrees,
 } from "pdf-lib";
 
+import Swal from "sweetalert2";
+
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
@@ -86,7 +88,11 @@ export default function App() {
     } catch (error) {
       console.log(error);
 
-      alert("Failed to upload PDF");
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to upload PDF",
+      });
     }
   };
 
@@ -106,9 +112,12 @@ export default function App() {
     } catch (error) {
       console.log(error);
 
-      alert(
-        "Failed to upload signature"
-      );
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text:
+          "Failed to upload signature",
+      });
     }
   };
 
@@ -131,6 +140,7 @@ export default function App() {
 
     let y = e.clientY - rect.top;
 
+    // KEEP INSIDE PDF
     x = Math.max(
       0,
       Math.min(
@@ -250,15 +260,24 @@ export default function App() {
   const handleSavePdf = async () => {
     try {
       if (!pdfBytes) {
-        alert("Upload PDF first");
+        Swal.fire({
+          icon: "warning",
+          title: "Upload PDF",
+          text:
+            "Please upload PDF first",
+        });
 
         return;
       }
 
       if (!signatureFile) {
-        alert(
-          "Upload signature first"
-        );
+        Swal.fire({
+          icon: "warning",
+          title:
+            "Upload Signature",
+          text:
+            "Please upload signature first",
+        });
 
         return;
       }
@@ -343,10 +362,33 @@ export default function App() {
       const a =
         document.createElement("a");
 
+      // FILE NAME POPUP
+      const { value: fileName } =
+        await Swal.fire({
+          title: "Enter file name",
+          input: "text",
+          inputValue: "signed-pdf",
+          inputPlaceholder:
+            "Enter PDF name",
+          showCancelButton: true,
+          confirmButtonText:
+            "Download",
+          inputValidator: (
+            value
+          ) => {
+            if (!value) {
+              return "File name is required";
+            }
+          },
+        });
+
+      if (!fileName) {
+        return;
+      }
+
       a.href = url;
 
-      a.download =
-        "signed-document.pdf";
+      a.download = `${fileName}.pdf`;
 
       document.body.appendChild(a);
 
@@ -355,10 +397,21 @@ export default function App() {
       document.body.removeChild(a);
 
       URL.revokeObjectURL(url);
+
+      Swal.fire({
+        icon: "success",
+        title: "Downloaded",
+        text:
+          "PDF downloaded successfully",
+      });
     } catch (error) {
       console.log(error);
 
-      alert("Failed to save PDF");
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to save PDF",
+      });
     }
   };
 
@@ -502,76 +555,65 @@ export default function App() {
                     {signature &&
                       signatureData.page ===
                         pageNumber && (
-                        <>
+                        <div
+                          style={{
+                            position:
+                              "absolute",
+                            left: `${signatureData.x}px`,
+                            top: `${signatureData.y}px`,
+                            width: `${signatureWidth}px`,
+                            height: `${signatureHeight}px`,
+                            transform: `rotate(${rotation}deg)`,
+                            transformOrigin:
+                              "center",
+                            zIndex: 999,
+                          }}
+                        >
+                          <img
+                            src={signature}
+                            alt="signature"
+                            onMouseDown={
+                              handleDragStart
+                            }
+                            draggable={
+                              false
+                            }
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              border:
+                                "2px dashed #2563eb",
+                              background:
+                                "white",
+                              padding: "4px",
+                              cursor: "move",
+                              userSelect:
+                                "none",
+                            }}
+                          />
+
+                          {/* ROTATE HANDLE */}
                           <div
+                            onMouseDown={
+                              handleRotateStart
+                            }
                             style={{
                               position:
                                 "absolute",
-                              left: `${signatureData.x}px`,
-                              top: `${signatureData.y}px`,
-                              width: `${signatureWidth}px`,
-                              height: `${signatureHeight}px`,
-                              transform: `rotate(${rotation}deg)`,
-                              transformOrigin:
-                                "center",
-                              zIndex: 999,
+                              width: "18px",
+                              height: "18px",
+                              borderRadius:
+                                "50%",
+                              background:
+                                "#2563eb",
+                              right: "-10px",
+                              top: "-10px",
+                              cursor: "grab",
+                              border:
+                                "2px solid white",
                             }}
-                          >
-                            <img
-                              src={signature}
-                              alt="signature"
-                              onMouseDown={
-                                handleDragStart
-                              }
-                              draggable={
-                                false
-                              }
-                              style={{
-                                width:
-                                  "100%",
-                                height:
-                                  "100%",
-                                border:
-                                  "2px dashed #2563eb",
-                                background:
-                                  "white",
-                                padding:
-                                  "4px",
-                                cursor:
-                                  "move",
-                                userSelect:
-                                  "none",
-                              }}
-                            />
-
-                            {/* ROTATE HANDLE */}
-                            <div
-                              onMouseDown={
-                                handleRotateStart
-                              }
-                              style={{
-                                position:
-                                  "absolute",
-                                width:
-                                  "18px",
-                                height:
-                                  "18px",
-                                borderRadius:
-                                  "50%",
-                                background:
-                                  "#2563eb",
-                                right:
-                                  "-10px",
-                                top:
-                                  "-10px",
-                                cursor:
-                                  "grab",
-                                border:
-                                  "2px solid white",
-                              }}
-                            />
-                          </div>
-                        </>
+                          />
+                        </div>
                       )}
                   </div>
                 );
