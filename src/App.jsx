@@ -1,10 +1,6 @@
 import React, { useRef, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
-import {
-  PDFDocument,
-  degrees,
-} from "pdf-lib";
-
+import { PDFDocument, degrees } from "pdf-lib";
 import Swal from "sweetalert2";
 
 import "react-pdf/dist/Page/AnnotationLayer.css";
@@ -17,8 +13,6 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 ).toString();
 
 export default function App() {
-  const containerRef = useRef(null);
-
   const [pdfFile, setPdfFile] =
     useState(null);
 
@@ -34,7 +28,6 @@ export default function App() {
   const [signatureFile, setSignatureFile] =
     useState(null);
 
-  // SIGNATURE POSITION
   const [signatureData, setSignatureData] =
     useState({
       x: 100,
@@ -42,34 +35,36 @@ export default function App() {
       page: 1,
     });
 
-  // DRAGGING
   const [dragging, setDragging] =
     useState(false);
 
-  // FREE ROTATION
   const [rotating, setRotating] =
     useState(false);
 
-  // ROTATION ANGLE
   const [rotation, setRotation] =
     useState(0);
 
-  // SIZE
-  const signatureWidth = 150;
-  const signatureHeight = 80;
+  const signatureWidth = 180;
+  const signatureHeight = 90;
 
-  // BUTTON STYLE
-  const buttonStyle = {
-    padding: "10px 20px",
-    border: "none",
-    borderRadius: "8px",
-    background: "#2563eb",
-    color: "white",
-    cursor: "pointer",
-    fontWeight: "bold",
+  // ======================================
+  // COLORS
+  // ======================================
+
+  const COLORS = {
+    primary: "#ff6b00",
+    secondary: "#ff8c42",
+    dark: "#050816",
+    card: "rgba(255,255,255,0.05)",
+    border: "rgba(255,255,255,0.08)",
+    text: "#ffffff",
+    text2: "#9ca3af",
   };
 
-  // PDF Upload
+  // ======================================
+  // PDF UPLOAD
+  // ======================================
+
   const handlePdfUpload = async (e) => {
     try {
       const file = e.target.files[0];
@@ -87,16 +82,13 @@ export default function App() {
       setPdfBytes(bytes);
     } catch (error) {
       console.log(error);
-
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Failed to upload PDF",
-      });
     }
   };
 
+  // ======================================
   // SIGNATURE UPLOAD
+  // ======================================
+
   const handleSignatureUpload = (e) => {
     try {
       const file = e.target.files[0];
@@ -111,17 +103,13 @@ export default function App() {
       setSignature(imageUrl);
     } catch (error) {
       console.log(error);
-
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text:
-          "Failed to upload signature",
-      });
     }
   };
 
+  // ======================================
   // CLICK TO PLACE
+  // ======================================
+
   const handlePageClick = (
     e,
     pageNumber
@@ -140,7 +128,9 @@ export default function App() {
 
     let y = e.clientY - rect.top;
 
+    // IMPORTANT
     // KEEP INSIDE PDF
+
     x = Math.max(
       0,
       Math.min(
@@ -164,21 +154,30 @@ export default function App() {
     });
   };
 
-  // START DRAG
+  // ======================================
+  // DRAG START
+  // ======================================
+
   const handleDragStart = (e) => {
     e.stopPropagation();
 
     setDragging(true);
   };
 
-  // START ROTATE
+  // ======================================
+  // ROTATE START
+  // ======================================
+
   const handleRotateStart = (e) => {
     e.stopPropagation();
 
     setRotating(true);
   };
 
+  // ======================================
   // MOUSE MOVE
+  // ======================================
+
   const handleMouseMove = (
     e,
     pageNumber
@@ -194,6 +193,9 @@ export default function App() {
       let x = e.clientX - rect.left;
 
       let y = e.clientY - rect.top;
+
+      // VERY IMPORTANT
+      // KEEP SIGNATURE INSIDE PDF
 
       x = Math.max(
         0,
@@ -219,7 +221,7 @@ export default function App() {
       }));
     }
 
-    // FREE ROTATION
+    // ROTATION
     if (
       rotating &&
       signatureData.page === pageNumber
@@ -249,14 +251,20 @@ export default function App() {
     }
   };
 
-  // STOP ACTIONS
+  // ======================================
+  // STOP
+  // ======================================
+
   const handleMouseUp = () => {
     setDragging(false);
 
     setRotating(false);
   };
 
+  // ======================================
   // SAVE PDF
+  // ======================================
+
   const handleSavePdf = async () => {
     try {
       if (!pdfBytes) {
@@ -265,6 +273,8 @@ export default function App() {
           title: "Upload PDF",
           text:
             "Please upload PDF first",
+          background: "#0f172a",
+          color: "#fff",
         });
 
         return;
@@ -277,6 +287,8 @@ export default function App() {
             "Upload Signature",
           text:
             "Please upload signature first",
+          background: "#0f172a",
+          color: "#fff",
         });
 
         return;
@@ -296,13 +308,11 @@ export default function App() {
       const pdfHeight =
         selectedPage.getHeight();
 
-      // UI WIDTH
       const renderedWidth = 1000;
 
       const scale =
         pdfWidth / renderedWidth;
 
-      // LOAD IMAGE
       const signatureBytes =
         await signatureFile.arrayBuffer();
 
@@ -320,14 +330,12 @@ export default function App() {
         );
       }
 
-      // IMAGE SIZE
       const imageWidth =
         signatureWidth * scale;
 
       const imageHeight =
         signatureHeight * scale;
 
-      // PDF POSITION
       const pdfX =
         signatureData.x * scale;
 
@@ -336,7 +344,6 @@ export default function App() {
         signatureData.y * scale -
         imageHeight;
 
-      // DRAW IMAGE
       selectedPage.drawImage(image, {
         x: pdfX,
         y: pdfY,
@@ -345,7 +352,6 @@ export default function App() {
         rotate: degrees(rotation),
       });
 
-      // SAVE
       const modifiedPdf =
         await pdfDoc.save();
 
@@ -362,29 +368,20 @@ export default function App() {
       const a =
         document.createElement("a");
 
-      // FILE NAME POPUP
       const { value: fileName } =
         await Swal.fire({
           title: "Enter file name",
           input: "text",
-          inputValue: "signed-pdf",
-          inputPlaceholder:
-            "Enter PDF name",
+          inputValue:
+            "hts-forge-signed",
           showCancelButton: true,
           confirmButtonText:
             "Download",
-          inputValidator: (
-            value
-          ) => {
-            if (!value) {
-              return "File name is required";
-            }
-          },
+          background: "#0f172a",
+          color: "#fff",
         });
 
-      if (!fileName) {
-        return;
-      }
+      if (!fileName) return;
 
       a.href = url;
 
@@ -403,224 +400,550 @@ export default function App() {
         title: "Downloaded",
         text:
           "PDF downloaded successfully",
+        background: "#0f172a",
+        color: "#fff",
       });
     } catch (error) {
       console.log(error);
-
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Failed to save PDF",
-      });
     }
+  };
+
+  // ======================================
+  // BUTTON STYLES
+  // ======================================
+
+  const buttonStyle = {
+    width: "100%",
+    height: "56px",
+    borderRadius: "18px",
+    border: "none",
+    background:
+      "linear-gradient(135deg,#ff6b00,#ff8c42)",
+    color: "white",
+    fontWeight: "700",
+    fontSize: "15px",
+    cursor: "pointer",
+    boxShadow:
+      "0 10px 30px rgba(255,107,0,0.35)",
+  };
+
+  const secondaryButton = {
+    width: "100%",
+    height: "52px",
+    borderRadius: "16px",
+    border: `1px solid ${COLORS.border}`,
+    background:
+      "rgba(255,255,255,0.05)",
+    color: "white",
+    fontWeight: "600",
+    fontSize: "14px",
+    cursor: "pointer",
   };
 
   return (
     <div
       style={{
-        minHeight: "100vh",
-        background: "#f3f4f6",
-        padding: "20px",
+        height: "100vh",
+        overflow: "hidden",
+        background: `
+          radial-gradient(circle at top left, rgba(255,107,0,0.2), transparent 20%),
+          radial-gradient(circle at bottom right, rgba(0,56,255,0.15), transparent 20%),
+          #050816
+        `,
+        padding: "24px",
+        boxSizing: "border-box",
+        fontFamily: "Inter, sans-serif",
       }}
     >
-      {/* TOP BAR */}
+      {/* HEADER */}
       <div
         style={{
-          background: "white",
-          padding: "15px",
-          borderRadius: "12px",
-          marginBottom: "20px",
           display: "flex",
-          gap: "10px",
-          flexWrap: "wrap",
+          justifyContent:
+            "space-between",
           alignItems: "center",
-          boxShadow:
-            "0 2px 10px rgba(0,0,0,0.1)",
+          marginBottom: "24px",
         }}
       >
-        <input
-          type="file"
-          accept="application/pdf"
-          onChange={handlePdfUpload}
-        />
+        <div>
+          <h1
+            style={{
+              fontSize: "42px",
+              color: "white",
+              margin: 0,
+              fontWeight: "900",
+            }}
+          >
+            HTS Forge PDF Studio
+          </h1>
 
-        <input
-          type="file"
-          accept="image/png,image/jpeg"
-          onChange={
-            handleSignatureUpload
-          }
-        />
+          <p
+            style={{
+              color: COLORS.text2,
+              marginTop: "8px",
+            }}
+          >
+            Enterprise PDF Signing Platform
+          </p>
+        </div>
 
-        <button
-          onClick={() =>
-            setRotation(
-              (prev) => prev - 90
-            )
-          }
-          style={buttonStyle}
+        <div
+          style={{
+            padding: "12px 20px",
+            borderRadius: "999px",
+            background:
+              "rgba(255,255,255,0.05)",
+            border: `1px solid ${COLORS.border}`,
+            color: COLORS.primary,
+            fontWeight: "700",
+          }}
         >
-          Rotate Left
-        </button>
-
-        <button
-          onClick={() =>
-            setRotation(
-              (prev) => prev + 90
-            )
-          }
-          style={buttonStyle}
-        >
-          Rotate Right
-        </button>
-
-        <button
-          onClick={handleSavePdf}
-          style={buttonStyle}
-        >
-          Save & Download
-        </button>
+          Hybrid Tech Studio
+        </div>
       </div>
 
-      {/* PDF */}
+      {/* MAIN */}
       <div
-        ref={containerRef}
         style={{
-          background: "white",
-          padding: "20px",
-          borderRadius: "12px",
-          boxShadow:
-            "0 2px 10px rgba(0,0,0,0.1)",
+          display: "grid",
+          gridTemplateColumns:
+            "320px 1fr",
+          gap: "24px",
+          height: "calc(100vh - 120px)",
         }}
       >
-        {pdfFile && (
-          <Document
-            file={pdfFile}
-            onLoadSuccess={({
-              numPages,
-            }) =>
-              setNumPages(numPages)
-            }
+        {/* SIDEBAR */}
+        <div
+          style={{
+            background:
+              "rgba(255,255,255,0.05)",
+            backdropFilter: "blur(20px)",
+            border: `1px solid ${COLORS.border}`,
+            borderRadius: "28px",
+            padding: "24px",
+            overflow: "hidden",
+            height: "100%",
+            boxSizing: "border-box",
+          }}
+        >
+          <h2
+            style={{
+              color: "white",
+              marginTop: 0,
+              fontSize: "30px",
+            }}
           >
-            {Array.from(
-              new Array(numPages),
-              (_, index) => {
-                const pageNumber =
-                  index + 1;
+            Workspace
+          </h2>
 
-                return (
-                  <div
-                    key={pageNumber}
-                    onClick={(e) =>
-                      handlePageClick(
-                        e,
-                        pageNumber
-                      )
-                    }
-                    onMouseMove={(e) =>
-                      handleMouseMove(
-                        e,
-                        pageNumber
-                      )
-                    }
-                    onMouseUp={
-                      handleMouseUp
-                    }
-                    onMouseLeave={
-                      handleMouseUp
-                    }
-                    style={{
-                      position:
-                        "relative",
-                      marginBottom:
-                        "20px",
-                      userSelect:
-                        "none",
-                    }}
-                  >
-                    <Page
-                      pageNumber={
-                        pageNumber
-                      }
-                      width={1000}
-                      renderTextLayer={
-                        false
-                      }
-                      renderAnnotationLayer={
-                        false
-                      }
-                    />
+          <p
+            style={{
+              color: COLORS.text2,
+              marginBottom: "28px",
+            }}
+          >
+            Upload & manage documents
+          </p>
 
-                    {/* SIGNATURE */}
-                    {signature &&
-                      signatureData.page ===
-                        pageNumber && (
-                        <div
-                          style={{
-                            position:
-                              "absolute",
-                            left: `${signatureData.x}px`,
-                            top: `${signatureData.y}px`,
-                            width: `${signatureWidth}px`,
-                            height: `${signatureHeight}px`,
-                            transform: `rotate(${rotation}deg)`,
-                            transformOrigin:
-                              "center",
-                            zIndex: 999,
-                          }}
-                        >
-                          <img
-                            src={signature}
-                            alt="signature"
-                            onMouseDown={
-                              handleDragStart
-                            }
-                            draggable={
-                              false
-                            }
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              border:
-                                "2px dashed #2563eb",
-                              background:
-                                "white",
-                              padding: "4px",
-                              cursor: "move",
-                              userSelect:
-                                "none",
-                            }}
-                          />
+          {/* PDF UPLOAD */}
+          <label
+            style={{
+              display: "block",
+              padding: "24px",
+              borderRadius: "24px",
+              border:
+                "2px dashed rgba(255,255,255,0.1)",
+              background:
+                "rgba(255,255,255,0.03)",
+              marginBottom: "20px",
+              cursor: "pointer",
+            }}
+          >
+            <div
+              style={{
+                textAlign: "center",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "40px",
+                  marginBottom: "10px",
+                }}
+              >
+                📄
+              </div>
 
-                          {/* ROTATE HANDLE */}
-                          <div
-                            onMouseDown={
-                              handleRotateStart
-                            }
-                            style={{
-                              position:
-                                "absolute",
-                              width: "18px",
-                              height: "18px",
-                              borderRadius:
-                                "50%",
-                              background:
-                                "#2563eb",
-                              right: "-10px",
-                              top: "-10px",
-                              cursor: "grab",
-                              border:
-                                "2px solid white",
-                            }}
-                          />
-                        </div>
-                      )}
-                  </div>
-                );
+              <h3
+                style={{
+                  color: "white",
+                  marginBottom: "6px",
+                }}
+              >
+                Upload PDF
+              </h3>
+
+              <p
+                style={{
+                  color: COLORS.text2,
+                  fontSize: "13px",
+                }}
+              >
+                Select your document
+              </p>
+            </div>
+
+            <input
+              hidden
+              type="file"
+              accept="application/pdf"
+              onChange={handlePdfUpload}
+            />
+          </label>
+
+          {/* SIGNATURE */}
+          <label
+            style={{
+              display: "block",
+              padding: "24px",
+              borderRadius: "24px",
+              border:
+                "2px dashed rgba(255,255,255,0.1)",
+              background:
+                "rgba(255,255,255,0.03)",
+              marginBottom: "24px",
+              cursor: "pointer",
+            }}
+          >
+            <div
+              style={{
+                textAlign: "center",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "40px",
+                  marginBottom: "10px",
+                }}
+              >
+                ✍️
+              </div>
+
+              <h3
+                style={{
+                  color: "white",
+                  marginBottom: "6px",
+                }}
+              >
+                Upload Signature
+              </h3>
+
+              <p
+                style={{
+                  color: COLORS.text2,
+                  fontSize: "13px",
+                }}
+              >
+                PNG / JPG supported
+              </p>
+            </div>
+
+            <input
+              hidden
+              type="file"
+              accept="image/png,image/jpeg"
+              onChange={
+                handleSignatureUpload
               }
-            )}
-          </Document>
-        )}
+            />
+          </label>
+
+          {/* BUTTONS */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "14px",
+            }}
+          >
+            <button
+              style={secondaryButton}
+              onClick={() =>
+                setRotation(
+                  (prev) => prev - 90
+                )
+              }
+            >
+              Rotate Left
+            </button>
+
+            <button
+              style={secondaryButton}
+              onClick={() =>
+                setRotation(
+                  (prev) => prev + 90
+                )
+              }
+            >
+              Rotate Right
+            </button>
+
+            <button
+              style={buttonStyle}
+              onClick={handleSavePdf}
+            >
+              Save & Download
+            </button>
+          </div>
+        </div>
+
+        {/* PDF AREA */}
+        <div
+          style={{
+            background:
+              "rgba(255,255,255,0.05)",
+            backdropFilter: "blur(20px)",
+            border: `1px solid ${COLORS.border}`,
+            borderRadius: "28px",
+            padding: "24px",
+            overflowY: "auto",
+            overflowX: "hidden",
+            height: "100%",
+            boxSizing: "border-box",
+          }}
+        >
+          {!pdfFile && (
+            <div
+              style={{
+                height: "100%",
+                display: "flex",
+                justifyContent:
+                  "center",
+                alignItems: "center",
+                flexDirection: "column",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "80px",
+                  marginBottom: "20px",
+                }}
+              >
+                🔥
+              </div>
+
+              <h2
+                style={{
+                  color: "white",
+                  fontSize: "40px",
+                  marginBottom: "8px",
+                }}
+              >
+                HTS Forge
+              </h2>
+
+              <p
+                style={{
+                  color: COLORS.text2,
+                }}
+              >
+                Upload PDF to begin
+              </p>
+            </div>
+          )}
+
+          {pdfFile && (
+            <Document
+              file={pdfFile}
+              onLoadSuccess={({
+                numPages,
+              }) =>
+                setNumPages(numPages)
+              }
+            >
+              {Array.from(
+                new Array(numPages),
+                (_, index) => {
+                  const pageNumber =
+                    index + 1;
+
+                  return (
+                    <div
+                      key={pageNumber}
+                      style={{
+                        display: "flex",
+                        justifyContent:
+                          "center",
+                        marginBottom:
+                          "40px",
+                      }}
+                    >
+                      {/* IMPORTANT */}
+                      {/* THIS IS THE FIX */}
+
+                      <div
+                        onClick={(e) =>
+                          handlePageClick(
+                            e,
+                            pageNumber
+                          )
+                        }
+                        onMouseMove={(e) =>
+                          handleMouseMove(
+                            e,
+                            pageNumber
+                          )
+                        }
+                        onMouseUp={
+                          handleMouseUp
+                        }
+                        onMouseLeave={
+                          handleMouseUp
+                        }
+                        style={{
+                          position:
+                            "relative",
+
+                          // IMPORTANT
+                          // PAGE WRAPPER SIZE
+
+                          width: "1000px",
+
+                          overflow: "hidden",
+
+                          borderRadius:
+                            "12px",
+
+                          boxShadow:
+                            "0 20px 60px rgba(0,0,0,0.45)",
+                        }}
+                      >
+                        <Page
+                          pageNumber={
+                            pageNumber
+                          }
+                          width={1000}
+                          renderTextLayer={
+                            false
+                          }
+                          renderAnnotationLayer={
+                            false
+                          }
+                        />
+
+                        {/* SIGNATURE */}
+
+                        {signature &&
+                          signatureData.page ===
+                            pageNumber && (
+                            <div
+                              style={{
+                                position:
+                                  "absolute",
+
+                                left: `${signatureData.x}px`,
+
+                                top: `${signatureData.y}px`,
+
+                                width: `${signatureWidth}px`,
+
+                                height: `${signatureHeight}px`,
+
+                                transform: `rotate(${rotation}deg)`,
+
+                                transformOrigin:
+                                  "center",
+
+                                zIndex: 999,
+                              }}
+                            >
+                              <img
+                                src={
+                                  signature
+                                }
+                                alt="signature"
+                                draggable={
+                                  false
+                                }
+                                onMouseDown={
+                                  handleDragStart
+                                }
+                                style={{
+                                  width:
+                                    "100%",
+
+                                  height:
+                                    "100%",
+
+                                  background:
+                                    "white",
+
+                                  border:
+                                    "2px solid #ff6b00",
+
+                                  borderRadius:
+                                    "14px",
+
+                                  padding:
+                                    "6px",
+
+                                  cursor:
+                                    "move",
+
+                                  userSelect:
+                                    "none",
+
+                                  boxShadow:
+                                    "0 0 25px rgba(255,107,0,0.5)",
+                                }}
+                              />
+
+                              {/* ROTATE HANDLE */}
+
+                              <div
+                                onMouseDown={
+                                  handleRotateStart
+                                }
+                                style={{
+                                  position:
+                                    "absolute",
+
+                                  right:
+                                    "-12px",
+
+                                  top: "-12px",
+
+                                  width:
+                                    "24px",
+
+                                  height:
+                                    "24px",
+
+                                  borderRadius:
+                                    "50%",
+
+                                  background:
+                                    COLORS.primary,
+
+                                  border:
+                                    "3px solid white",
+
+                                  cursor:
+                                    "grab",
+
+                                  boxShadow:
+                                    "0 0 15px rgba(255,107,0,0.5)",
+                                }}
+                              />
+                            </div>
+                          )}
+                      </div>
+                    </div>
+                  );
+                }
+              )}
+            </Document>
+          )}
+        </div>
       </div>
     </div>
   );
