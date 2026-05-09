@@ -18,14 +18,19 @@ export default function App() {
   const [numPages, setNumPages] = useState(0);
 
   const [signature, setSignature] = useState(null);
-  const [signatureFile, setSignatureFile] = useState(null);
+  const [signatureFile, setSignatureFile] =
+    useState(null);
 
   // SIGNATURE POSITION + PAGE
-  const [signatureData, setSignatureData] = useState({
-    x: 100,
-    y: 100,
-    page: 1,
-  });
+  const [signatureData, setSignatureData] =
+    useState({
+      x: 100,
+      y: 100,
+      page: 1,
+    });
+
+  // DRAG STATE
+  const [dragging, setDragging] = useState(false);
 
   // PDF Upload
   const handlePdfUpload = async (e) => {
@@ -56,7 +61,8 @@ export default function App() {
 
       setSignatureFile(file);
 
-      const imageUrl = URL.createObjectURL(file);
+      const imageUrl =
+        URL.createObjectURL(file);
 
       setSignature(imageUrl);
     } catch (error) {
@@ -66,10 +72,14 @@ export default function App() {
   };
 
   // CLICK TO PLACE SIGNATURE
-  const handlePageClick = (e, pageNumber) => {
-    if (!signature) return;
+  const handlePageClick = (
+    e,
+    pageNumber
+  ) => {
+    if (!signature || dragging) return;
 
-    const rect = e.currentTarget.getBoundingClientRect();
+    const rect =
+      e.currentTarget.getBoundingClientRect();
 
     const x = e.clientX - rect.left;
 
@@ -80,6 +90,43 @@ export default function App() {
       y,
       page: pageNumber,
     });
+  };
+
+  // START DRAG
+  const handleDragStart = (e) => {
+    e.stopPropagation();
+
+    setDragging(true);
+  };
+
+  // DRAGGING
+  const handleMouseMove = (
+    e,
+    pageNumber
+  ) => {
+    if (
+      !dragging ||
+      signatureData.page !== pageNumber
+    )
+      return;
+
+    const rect =
+      e.currentTarget.getBoundingClientRect();
+
+    const x = e.clientX - rect.left;
+
+    const y = e.clientY - rect.top;
+
+    setSignatureData((prev) => ({
+      ...prev,
+      x,
+      y,
+    }));
+  };
+
+  // STOP DRAG
+  const handleMouseUp = () => {
+    setDragging(false);
   };
 
   // SAVE PDF
@@ -95,7 +142,9 @@ export default function App() {
         return;
       }
 
-      const pdfDoc = await PDFDocument.load(pdfBytes);
+      const pdfDoc = await PDFDocument.load(
+        pdfBytes
+      );
 
       const pages = pdfDoc.getPages();
 
@@ -103,15 +152,18 @@ export default function App() {
       const selectedPage =
         pages[signatureData.page - 1];
 
-      const pdfWidth = selectedPage.getWidth();
+      const pdfWidth =
+        selectedPage.getWidth();
 
-      const pdfHeight = selectedPage.getHeight();
+      const pdfHeight =
+        selectedPage.getHeight();
 
       // PAGE WIDTH USED IN UI
       const renderedWidth = 1000;
 
       // SCALE
-      const scale = pdfWidth / renderedWidth;
+      const scale =
+        pdfWidth / renderedWidth;
 
       // LOAD IMAGE
       const signatureBytes =
@@ -119,10 +171,16 @@ export default function App() {
 
       let image;
 
-      if (signatureFile.type.includes("png")) {
-        image = await pdfDoc.embedPng(signatureBytes);
+      if (
+        signatureFile.type.includes("png")
+      ) {
+        image = await pdfDoc.embedPng(
+          signatureBytes
+        );
       } else {
-        image = await pdfDoc.embedJpg(signatureBytes);
+        image = await pdfDoc.embedJpg(
+          signatureBytes
+        );
       }
 
       // IMAGE SIZE
@@ -130,7 +188,8 @@ export default function App() {
       const imageHeight = 80 * scale;
 
       // PDF COORDINATES
-      const pdfX = signatureData.x * scale;
+      const pdfX =
+        signatureData.x * scale;
 
       const pdfY =
         pdfHeight -
@@ -146,15 +205,21 @@ export default function App() {
       });
 
       // SAVE
-      const modifiedPdf = await pdfDoc.save();
+      const modifiedPdf =
+        await pdfDoc.save();
 
-      const blob = new Blob([modifiedPdf], {
-        type: "application/pdf",
-      });
+      const blob = new Blob(
+        [modifiedPdf],
+        {
+          type: "application/pdf",
+        }
+      );
 
-      const url = URL.createObjectURL(blob);
+      const url =
+        URL.createObjectURL(blob);
 
-      const a = document.createElement("a");
+      const a =
+        document.createElement("a");
 
       a.href = url;
 
@@ -192,7 +257,8 @@ export default function App() {
           gap: "10px",
           flexWrap: "wrap",
           alignItems: "center",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+          boxShadow:
+            "0 2px 10px rgba(0,0,0,0.1)",
         }}
       >
         <input
@@ -204,7 +270,9 @@ export default function App() {
         <input
           type="file"
           accept="image/png,image/jpeg"
-          onChange={handleSignatureUpload}
+          onChange={
+            handleSignatureUpload
+          }
         />
 
         <button
@@ -229,38 +297,68 @@ export default function App() {
           background: "white",
           padding: "20px",
           borderRadius: "12px",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+          boxShadow:
+            "0 2px 10px rgba(0,0,0,0.1)",
         }}
       >
         {pdfFile && (
           <Document
             file={pdfFile}
-            onLoadSuccess={({ numPages }) => {
+            onLoadSuccess={({
+              numPages,
+            }) => {
               setNumPages(numPages);
             }}
           >
             {Array.from(
               new Array(numPages),
               (_, index) => {
-                const pageNumber = index + 1;
+                const pageNumber =
+                  index + 1;
 
                 return (
                   <div
                     key={pageNumber}
                     onClick={(e) =>
-                      handlePageClick(e, pageNumber)
+                      handlePageClick(
+                        e,
+                        pageNumber
+                      )
+                    }
+                    onMouseMove={(e) =>
+                      handleMouseMove(
+                        e,
+                        pageNumber
+                      )
+                    }
+                    onMouseUp={
+                      handleMouseUp
+                    }
+                    onMouseLeave={
+                      handleMouseUp
                     }
                     style={{
-                      position: "relative",
-                      marginBottom: "20px",
-                      cursor: "crosshair",
+                      position:
+                        "relative",
+                      marginBottom:
+                        "20px",
+                      cursor:
+                        "crosshair",
+                      userSelect:
+                        "none",
                     }}
                   >
                     <Page
-                      pageNumber={pageNumber}
+                      pageNumber={
+                        pageNumber
+                      }
                       width={1000}
-                      renderTextLayer={false}
-                      renderAnnotationLayer={false}
+                      renderTextLayer={
+                        false
+                      }
+                      renderAnnotationLayer={
+                        false
+                      }
                     />
 
                     {/* SIGNATURE PREVIEW */}
@@ -270,18 +368,30 @@ export default function App() {
                         <img
                           src={signature}
                           alt="signature"
+                          onMouseDown={
+                            handleDragStart
+                          }
+                          draggable={
+                            false
+                          }
                           style={{
-                            position: "absolute",
+                            position:
+                              "absolute",
                             left: `${signatureData.x}px`,
                             top: `${signatureData.y}px`,
-                            width: "150px",
-                            height: "80px",
+                            width:
+                              "150px",
+                            height:
+                              "80px",
                             border:
                               "2px dashed #2563eb",
-                            background: "white",
-                            padding: "4px",
-                            pointerEvents: "none",
+                            background:
+                              "white",
+                            padding:
+                              "4px",
                             zIndex: 999,
+                            cursor:
+                              "move",
                           }}
                         />
                       )}
