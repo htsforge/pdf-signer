@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { PDFDocument, degrees } from "pdf-lib";
 import Swal from "sweetalert2";
@@ -6,13 +6,20 @@ import Swal from "sweetalert2";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
+// ======================================
 // PDF WORKER
+// ======================================
+
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
   import.meta.url
 ).toString();
 
 export default function App() {
+  // ======================================
+  // STATES
+  // ======================================
+
   const [pdfFile, setPdfFile] =
     useState(null);
 
@@ -44,21 +51,22 @@ export default function App() {
   const [rotation, setRotation] =
     useState(0);
 
+  // ======================================
+  // CONFIG
+  // ======================================
+
   const signatureWidth = 180;
   const signatureHeight = 90;
-
-  // ======================================
-  // COLORS
-  // ======================================
 
   const COLORS = {
     primary: "#ff6b00",
     secondary: "#ff8c42",
-    dark: "#050816",
-    card: "rgba(255,255,255,0.05)",
-    border: "rgba(255,255,255,0.08)",
+    dark: "#030712",
+    darkBlue: "#07132b",
     text: "#ffffff",
     text2: "#9ca3af",
+    border: "rgba(255,255,255,0.08)",
+    glass: "rgba(255,255,255,0.05)",
   };
 
   // ======================================
@@ -128,7 +136,6 @@ export default function App() {
 
     let y = e.clientY - rect.top;
 
-    // IMPORTANT
     // KEEP INSIDE PDF
 
     x = Math.max(
@@ -186,6 +193,7 @@ export default function App() {
       e.currentTarget.getBoundingClientRect();
 
     // DRAGGING
+
     if (
       dragging &&
       signatureData.page === pageNumber
@@ -194,8 +202,7 @@ export default function App() {
 
       let y = e.clientY - rect.top;
 
-      // VERY IMPORTANT
-      // KEEP SIGNATURE INSIDE PDF
+      // KEEP INSIDE PDF
 
       x = Math.max(
         0,
@@ -222,6 +229,7 @@ export default function App() {
     }
 
     // ROTATION
+
     if (
       rotating &&
       signatureData.page === pageNumber
@@ -252,7 +260,7 @@ export default function App() {
   };
 
   // ======================================
-  // STOP
+  // STOP ACTIONS
   // ======================================
 
   const handleMouseUp = () => {
@@ -412,11 +420,11 @@ export default function App() {
   // BUTTON STYLES
   // ======================================
 
-  const buttonStyle = {
+  const primaryButton = {
     width: "100%",
     height: "56px",
-    borderRadius: "18px",
     border: "none",
+    borderRadius: "18px",
     background:
       "linear-gradient(135deg,#ff6b00,#ff8c42)",
     color: "white",
@@ -424,7 +432,7 @@ export default function App() {
     fontSize: "15px",
     cursor: "pointer",
     boxShadow:
-      "0 10px 30px rgba(255,107,0,0.35)",
+      "0 15px 40px rgba(255,107,0,0.35)",
   };
 
   const secondaryButton = {
@@ -433,7 +441,7 @@ export default function App() {
     borderRadius: "16px",
     border: `1px solid ${COLORS.border}`,
     background:
-      "rgba(255,255,255,0.05)",
+      "rgba(255,255,255,0.04)",
     color: "white",
     fontWeight: "600",
     fontSize: "14px",
@@ -445,17 +453,26 @@ export default function App() {
       style={{
         height: "100vh",
         overflow: "hidden",
-        background: `
-          radial-gradient(circle at top left, rgba(255,107,0,0.2), transparent 20%),
-          radial-gradient(circle at bottom right, rgba(0,56,255,0.15), transparent 20%),
-          #050816
-        `,
         padding: "24px",
         boxSizing: "border-box",
         fontFamily: "Inter, sans-serif",
+
+        // ======================================
+        // HTS FORGE BACKGROUND
+        // ======================================
+
+        background: `
+          radial-gradient(circle at top left, rgba(255,107,0,0.45), transparent 22%),
+          radial-gradient(circle at 20% 30%, rgba(255,107,0,0.18), transparent 18%),
+          radial-gradient(circle at bottom right, rgba(0,56,255,0.22), transparent 28%),
+          linear-gradient(135deg,#050816 0%, #020617 45%, #07132b 100%)
+        `,
       }}
     >
+      {/* ====================================== */}
       {/* HEADER */}
+      {/* ====================================== */}
+
       <div
         style={{
           display: "flex",
@@ -468,10 +485,13 @@ export default function App() {
         <div>
           <h1
             style={{
-              fontSize: "42px",
+              fontSize: "48px",
               color: "white",
               margin: 0,
               fontWeight: "900",
+              letterSpacing: "-1px",
+              textShadow:
+                "0 0 25px rgba(255,107,0,0.25)",
             }}
           >
             HTS Forge PDF Studio
@@ -480,7 +500,8 @@ export default function App() {
           <p
             style={{
               color: COLORS.text2,
-              marginTop: "8px",
+              marginTop: "10px",
+              fontSize: "15px",
             }}
           >
             Enterprise PDF Signing Platform
@@ -489,20 +510,26 @@ export default function App() {
 
         <div
           style={{
-            padding: "12px 20px",
+            padding: "12px 24px",
             borderRadius: "999px",
             background:
               "rgba(255,255,255,0.05)",
             border: `1px solid ${COLORS.border}`,
             color: COLORS.primary,
             fontWeight: "700",
+            backdropFilter: "blur(10px)",
+            boxShadow:
+              "0 10px 30px rgba(255,107,0,0.12)",
           }}
         >
           Hybrid Tech Studio
         </div>
       </div>
 
-      {/* MAIN */}
+      {/* ====================================== */}
+      {/* MAIN LAYOUT */}
+      {/* ====================================== */}
+
       <div
         style={{
           display: "grid",
@@ -512,25 +539,39 @@ export default function App() {
           height: "calc(100vh - 120px)",
         }}
       >
+        {/* ====================================== */}
         {/* SIDEBAR */}
+        {/* ====================================== */}
+
         <div
           style={{
             background:
-              "rgba(255,255,255,0.05)",
-            backdropFilter: "blur(20px)",
+              "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03))",
+
+            backdropFilter: "blur(18px)",
+
             border: `1px solid ${COLORS.border}`,
-            borderRadius: "28px",
+
+            borderRadius: "30px",
+
             padding: "24px",
+
             overflow: "hidden",
-            height: "100%",
+
             boxSizing: "border-box",
+
+            boxShadow: `
+              0 20px 60px rgba(0,0,0,0.45),
+              inset 0 1px 0 rgba(255,255,255,0.05)
+            `,
           }}
         >
           <h2
             style={{
               color: "white",
               marginTop: 0,
-              fontSize: "30px",
+              fontSize: "34px",
+              marginBottom: "8px",
             }}
           >
             Workspace
@@ -546,17 +587,29 @@ export default function App() {
           </p>
 
           {/* PDF UPLOAD */}
+
           <label
             style={{
               display: "block",
-              padding: "24px",
-              borderRadius: "24px",
+
+              padding: "26px",
+
+              borderRadius: "26px",
+
               border:
-                "2px dashed rgba(255,255,255,0.1)",
+                "2px dashed rgba(255,255,255,0.08)",
+
               background:
-                "rgba(255,255,255,0.03)",
+                "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))",
+
               marginBottom: "20px",
+
               cursor: "pointer",
+
+              transition: "0.3s",
+
+              boxShadow:
+                "inset 0 1px 0 rgba(255,255,255,0.04)",
             }}
           >
             <div
@@ -566,8 +619,8 @@ export default function App() {
             >
               <div
                 style={{
-                  fontSize: "40px",
-                  marginBottom: "10px",
+                  fontSize: "46px",
+                  marginBottom: "12px",
                 }}
               >
                 📄
@@ -576,7 +629,7 @@ export default function App() {
               <h3
                 style={{
                   color: "white",
-                  marginBottom: "6px",
+                  marginBottom: "8px",
                 }}
               >
                 Upload PDF
@@ -601,16 +654,23 @@ export default function App() {
           </label>
 
           {/* SIGNATURE */}
+
           <label
             style={{
               display: "block",
-              padding: "24px",
-              borderRadius: "24px",
+
+              padding: "26px",
+
+              borderRadius: "26px",
+
               border:
-                "2px dashed rgba(255,255,255,0.1)",
+                "2px dashed rgba(255,255,255,0.08)",
+
               background:
-                "rgba(255,255,255,0.03)",
-              marginBottom: "24px",
+                "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))",
+
+              marginBottom: "28px",
+
               cursor: "pointer",
             }}
           >
@@ -621,8 +681,8 @@ export default function App() {
             >
               <div
                 style={{
-                  fontSize: "40px",
-                  marginBottom: "10px",
+                  fontSize: "46px",
+                  marginBottom: "12px",
                 }}
               >
                 ✍️
@@ -631,7 +691,7 @@ export default function App() {
               <h3
                 style={{
                   color: "white",
-                  marginBottom: "6px",
+                  marginBottom: "8px",
                 }}
               >
                 Upload Signature
@@ -658,6 +718,7 @@ export default function App() {
           </label>
 
           {/* BUTTONS */}
+
           <div
             style={{
               display: "flex",
@@ -688,7 +749,7 @@ export default function App() {
             </button>
 
             <button
-              style={buttonStyle}
+              style={primaryButton}
               onClick={handleSavePdf}
             >
               Save & Download
@@ -696,19 +757,33 @@ export default function App() {
           </div>
         </div>
 
+        {/* ====================================== */}
         {/* PDF AREA */}
+        {/* ====================================== */}
+
         <div
           style={{
             background:
-              "rgba(255,255,255,0.05)",
-            backdropFilter: "blur(20px)",
+              "linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.03))",
+
+            backdropFilter: "blur(18px)",
+
             border: `1px solid ${COLORS.border}`,
-            borderRadius: "28px",
-            padding: "24px",
+
+            borderRadius: "30px",
+
+            padding: "26px",
+
             overflowY: "auto",
+
             overflowX: "hidden",
-            height: "100%",
+
             boxSizing: "border-box",
+
+            boxShadow: `
+              0 20px 60px rgba(0,0,0,0.45),
+              inset 0 1px 0 rgba(255,255,255,0.05)
+            `,
           }}
         >
           {!pdfFile && (
@@ -724,8 +799,10 @@ export default function App() {
             >
               <div
                 style={{
-                  fontSize: "80px",
-                  marginBottom: "20px",
+                  fontSize: "90px",
+                  marginBottom: "24px",
+                  filter:
+                    "drop-shadow(0 0 25px rgba(255,107,0,0.45))",
                 }}
               >
                 🔥
@@ -734,8 +811,9 @@ export default function App() {
               <h2
                 style={{
                   color: "white",
-                  fontSize: "40px",
-                  marginBottom: "8px",
+                  fontSize: "48px",
+                  marginBottom: "10px",
+                  fontWeight: "900",
                 }}
               >
                 HTS Forge
@@ -777,9 +855,6 @@ export default function App() {
                           "40px",
                       }}
                     >
-                      {/* IMPORTANT */}
-                      {/* THIS IS THE FIX */}
-
                       <div
                         onClick={(e) =>
                           handlePageClick(
@@ -803,18 +878,15 @@ export default function App() {
                           position:
                             "relative",
 
-                          // IMPORTANT
-                          // PAGE WRAPPER SIZE
-
                           width: "1000px",
 
                           overflow: "hidden",
 
                           borderRadius:
-                            "12px",
+                            "14px",
 
                           boxShadow:
-                            "0 20px 60px rgba(0,0,0,0.45)",
+                            "0 25px 80px rgba(0,0,0,0.55)",
                         }}
                       >
                         <Page
@@ -893,7 +965,10 @@ export default function App() {
                                     "none",
 
                                   boxShadow:
-                                    "0 0 25px rgba(255,107,0,0.5)",
+                                    `
+                                      0 0 25px rgba(255,107,0,0.45),
+                                      0 0 50px rgba(255,107,0,0.25)
+                                    `,
                                 }}
                               />
 
@@ -931,7 +1006,7 @@ export default function App() {
                                     "grab",
 
                                   boxShadow:
-                                    "0 0 15px rgba(255,107,0,0.5)",
+                                    "0 0 15px rgba(255,107,0,0.6)",
                                 }}
                               />
                             </div>
