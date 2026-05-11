@@ -51,6 +51,9 @@ export default function App() {
   const [rotation, setRotation] =
     useState(0);
 
+  const [interaction, setInteraction] =
+    useState(false);
+
   // ======================================
   // CONFIG
   // ======================================
@@ -125,7 +128,8 @@ export default function App() {
     if (
       !signature ||
       dragging ||
-      rotating
+      rotating ||
+      interaction
     )
       return;
 
@@ -135,8 +139,6 @@ export default function App() {
     let x = e.clientX - rect.left;
 
     let y = e.clientY - rect.top;
-
-    // KEEP INSIDE PDF
 
     x = Math.max(
       0,
@@ -168,6 +170,7 @@ export default function App() {
   const handleDragStart = (e) => {
     e.stopPropagation();
 
+    setInteraction(true);
     setDragging(true);
   };
 
@@ -178,6 +181,7 @@ export default function App() {
   const handleRotateStart = (e) => {
     e.stopPropagation();
 
+    setInteraction(true);
     setRotating(true);
   };
 
@@ -217,7 +221,7 @@ export default function App() {
         Math.min(
           y,
           rect.height -
-            signatureHeight
+          signatureHeight
         )
       );
 
@@ -267,6 +271,10 @@ export default function App() {
     setDragging(false);
 
     setRotating(false);
+
+    setTimeout(() => {
+      setInteraction(false);
+    }, 0);
   };
 
   // ======================================
@@ -906,7 +914,7 @@ export default function App() {
 
                         {signature &&
                           signatureData.page ===
-                            pageNumber && (
+                          pageNumber && (
                             <div
                               style={{
                                 position:
